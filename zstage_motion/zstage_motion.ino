@@ -1,3 +1,4 @@
+
 #include <Stepper.h>
 /** @ John Marangola
  *  Controls TB6560 stepper driver on arduino uno or equivalent microprocessor.
@@ -42,8 +43,9 @@ const int STP = 11;
 const int DIR = 12;
 
 // Position indices:
-const int POS[3] = {0, 0, 0};
+const int POS[3] = {1000, 1000, 1000};
 bool recalibrate = false;
+int state = 0;
 
 AccelStepper ZStage(AccelStepper::FULL2WIRE, 11, 12);
 
@@ -84,60 +86,73 @@ void setup(){ // initial params
   pinMode(ZP, INPUT_PULLUP);
   pinMode(ZERO, INPUT_PULLUP);
   
-  ZStage.moveTo(10000);
-  ZStage.setPinsInverted(false, false, false);
-  ZStage.moveTo(100000000);
-}
 
+  ZStage.setPinsInverted(false, false, false);
+  ZStage.setCurrentPosition(0);
+
+} 
 bool isAtLimit(){
   return (digitalRead(LOWER_LIMIT) == LOW || digitalRead(UPPER_LIMIT) == LOW);
 }
 
 void loop(){
-   
+ 
    if (digitalRead(RETRACT) == LOW){ // Retract
-    Serial.println("RETRACT");
+    //Serial.println("RETRACT");
     //Check if not at limit or at upper limit
-      if (!isAtLimit() || digitalRead(UPPER_LIMIT) == LOW)
-          ZStage.runSpeed(-MAXIMUM_SPEED);
-      
+      //if (!isAtLimit() || digitalRead(UPPER_LIMIT) == LOW){}
+         
+         ZStage.setSpeed(5000);
+         ZStage.run();
+   }
    else if (digitalRead(DEPLOY) == LOW){ // Deploy
-      Serial.println("Deploy");
+      //Serial.println("Deploy");
         // Check if not at limit or at lower limit 
-        if (!isAtLimit() || digitalRead(LOWER_LIMIT) == LOW) 
-          ZStage.runSpeed(MAXIMUM_SPEED);
+        //if (!isAtLimit() || digitalRead(LOWER_LIMIT) == LOW) {
+          //ZStage.runSpeed(MAXIMUM_SPEED);
+       // }
+        
+         ZStage.setSpeed(-5000);
+         ZStage.run();
+   }
+   else if (!digitalRead(DEPLOY) == LOW && !digitalRead(XP) == LOW){
+    Serial.println(ZStage.currentPosition());
    }
    
    else if (digitalRead(XP) == LOW){
+   
       Serial.println("MOVE TO X");
-      ZStage.runToNewPosition(POS[0]);
+      ZStage.moveTo(POS[0]);
+      Serial.println(ZStage.currentPosition());
+      ZStage.runToPosition();
+      Serial.println(ZStage.targetPosition());
+      Serial.println(ZStage.currentPosition());
    }
    
    else if (digitalRead(YP) == LOW){
     // Move to y
-      ZStage.runToNewPosition(POS[1]);
+      //ZStage.runToNewPosition(POS[1]);
    }
    
    else if (digitalRead(ZP) == LOW){
       // Move to Z
-      ZStage.runToNewPosition(POS[2]);
+      //ZStage.runToNewPosition(POS[2]);
    }
    
    else if (digitalRead(ZERO) == LOW || recalibrate){
       // Calibrate zero to lower limit
       if (isAtLimit()){
         recalibrate = false;
-        Serial.println("Re-calibrating position...);
+        Serial.println("Re-calibrating position...");
         Serial.print("Stepping with ");
         Serial.print(RESOLUTION);
         Serial.println("microsteps per revolution");
-        ZStage.setPosition(0);
+       // ZStage.setCurrentPosition(0);
         Serial.println("Current position: ");
         Serial.println(ZStage.currentPosition());
     }
      else {
-        ZStage.move(-10);
-        ZStage.run();
+       
      } 
     
    }
