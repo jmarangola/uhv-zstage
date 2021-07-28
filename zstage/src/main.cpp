@@ -39,7 +39,7 @@ void home_axis() {
   zstage.stepper.setCurrentPosition(0);
   zstage.stepper.runToNewPosition(-7500);
   zstage.stepper.stop();
-  // Back off limit by about a quarter of an inch and reapproach at slower speed to optimize accuracy
+  // Back off of the lower limit by about a tiny amount and reapproach at slower speed to optimize accuracy
   zstage.stepper.setSpeed(3000);
   while (digitalRead(lowerLimitPin)) {
     zstage.stepper.runSpeed();
@@ -47,6 +47,12 @@ void home_axis() {
   zstage.stepper.setCurrentPosition(0);
 }
 
+/**
+ * @brief Checks whether a new Arduino board was inserted into the system.
+ * 
+ * @return true : new board which needs to be initialized
+ * @return false : old board
+ */
 bool checkNewEEPROM() {
   for (int byte = 0; byte < 512; byte++) {
     if (EEPROM.read(byte) != 255) 
@@ -55,6 +61,13 @@ bool checkNewEEPROM() {
   return true;
 }
 
+/**
+ * @brief Determine whether the arduino was safely powered off last or whether it lost power due
+ * to an unexpected power cycle or loss of power
+ * 
+ * @return true : Safely powered off -- Safe to begin homing routine
+ * @return false : Unaccounted loss of power -- Cleaver could be extended and long manipulator down
+ */
 bool safelyPoweredOff() {
   for (int byte = 0; byte < 512; byte++) {
     if (EEPROM.read(byte) == 0) {
@@ -66,12 +79,21 @@ bool safelyPoweredOff() {
   }
 }
 
+/**
+ * @brief Set a random EEPROM address to the failsafe value with a leading signature bit
+ * Randomization to avoid EEPROM burnout of 100k EEPROM writes/byte 
+ * 
+ */
 void initializeEEPROM() {
   int addr = random(0, 512);
   EEPROM.update(addr - 1, 0);
   EEPROM.update(addr, 8);
 }
 
+/**
+ * @brief Arduino initialization
+ * 
+ */
 void setup() {
   pinMode(lowerLimitPin, INPUT_PULLUP); // Pullup lower limit switch
   pinMode(upperLimitPin, INPUT_PULLUP); // Pullup upper limit switch
@@ -93,6 +115,10 @@ void setup() {
   }  
 }
 
+/**
+ * @brief Main execution loop
+ * 
+ */
 void loop() {
   if (digitalRead(lowerLimitPin)) {
     zstage.stepper.stop();
