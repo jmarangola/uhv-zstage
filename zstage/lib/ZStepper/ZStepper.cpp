@@ -25,7 +25,7 @@ ZStepper::ZStepper(uint8_t step_p, uint8_t dir_p, uint8_t enable_p) {
 }
 
 void ZStepper::set_enable(bool is_enabled) {
-    digitalWrite(enable_pin, (is_enabled ? LOW : HIGH));
+    //digitalWrite(enable_pin, (is_enabled ? LOW : HIGH));
     enable_status = is_enabled;
 }
 

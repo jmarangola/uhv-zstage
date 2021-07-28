@@ -13,9 +13,18 @@
 #include <Arduino.h>
 #include <AccelStepper.h>
 #include "ZStepper.h"
+#include "EEPROM.h"
 
 ZStepper zstage(6, 4, 7);
-const int8_t limit_pin = 13;
+const int8_t lowerLimitPin = 13;
+const int8_t upperLimitPin = 9;
+const int n_positions = 3;
+const int8_t positionButtons[n_positions] = {1, 2, 3};
+const int8_t targetPositions[n_positions] = {1, 2, 3};
+const int8_t extendButton = 19;
+const int8_t retractButton = 21;
+const int8_t okButton = 23;
+bool errorState = false;
 
 /**
  * @brief Home the linear translator to the limit switch efficiently, setting positional index to 0.
@@ -24,7 +33,7 @@ const int8_t limit_pin = 13;
 void home_axis() {
   // Run quickly to limit
   zstage.stepper.setSpeed(5000);
-  while (digitalRead(limit_pin)) {
+  while (digitalRead(lowerLimitPin)) {
     zstage.stepper.runSpeed();
   }
   zstage.stepper.setCurrentPosition(0);
@@ -32,20 +41,88 @@ void home_axis() {
   zstage.stepper.stop();
   // Back off limit by about a quarter of an inch and reapproach at slower speed to optimize accuracy
   zstage.stepper.setSpeed(3000);
-  while (digitalRead(limit_pin)) {
+  while (digitalRead(lowerLimitPin)) {
     zstage.stepper.runSpeed();
   }
   zstage.stepper.setCurrentPosition(0);
 }
 
-void setup() {
-  pinMode(limit_pin, INPUT_PULLUP); // Pullup limit switch
-  Serial.begin(9600);
-  home_axis();
-  zstage.set_enable(false);
+bool checkNewEEPROM() {
+  for (int byte = 0; byte < 512; byte++) {
+    if (EEPROM.read(byte) != 255) 
+      return false;
+  }
+  return true;
+}
 
+bool safelyPoweredOff() {
+  for (int byte = 0; byte < 512; byte++) {
+    if (EEPROM.read(byte) == 0) {
+      if (EEPROM.read(++byte) == 64) // Safe power down or power cycle (position should be approximately homed and safe to home immediately)
+        return true;
+      else // Failsafe shutdown/power cycle reboot
+        return false;
+    }
+  }
+}
+
+void initializeEEPROM() {
+  int addr = random(0, 512);
+  EEPROM.update(addr - 1, 0);
+  EEPROM.update(addr, 8);
+}
+
+void setup() {
+  pinMode(lowerLimitPin, INPUT_PULLUP); // Pullup lower limit switch
+  pinMode(upperLimitPin, INPUT_PULLUP); // Pullup upper limit switch
+  for (int i = 0; i < n_positions; i++) pinMode(positionButtons[i], INPUT_PULLUP);
+  pinMode(okButton, INPUT_PULLUP);
+  Serial.begin(9600);
+  Serial.println("[Serial Communication Opened]");
+  if (checkNewEEPROM()) {
+    // Setup brand new device messages
+  }
+  else if (safelyPoweredOff()) {
+    initializeEEPROM();
+    home_axis();
+    Serial.println("[ZStage Homed]");
+  }
+  else {
+    errorState = true;
+    Serial.println("[Error: Power failure]");
+  }  
 }
 
 void loop() {
-
+  if (digitalRead(lowerLimitPin)) {
+    zstage.stepper.stop();
+    zstage.stepper.setCurrentPosition(0);
+  }
+  else if (digitalRead(upperLimitPin)) {
+    zstage.stepper.stop();
+  }
+  else if (digitalRead(extendButton) && !digitalRead(upperLimitPin)) { // Check upper limit when extending zstage into chamber
+    zstage.stepper.setSpeed(5000);
+    zstage.stepper.run();
+  }
+  else if (digitalRead(retractButton) && !digitalRead(lowerLimitPin)) { // Check limit to make sure that motor does not manually blow through lower endstop
+    zstage.stepper.setSpeed(-5000);
+    zstage.stepper.run();
+  }
+  else if (errorState) {
+    delayMicroseconds(10000);
+    /* Check 'Ok' Button to wait for move here */
+    if (digitalRead(okButton)) {
+      home_axis();
+      errorState = false;
+    }
+  }
+  else {
+    for (int i = 0; i < 3; i++) {
+      if (digitalRead(positionButtons[i])) {
+        zstage.stepper.runToNewPosition(targetPositions[i]);
+        break;
+      }
+    }
+  }
 }

@@ -8,10 +8,10 @@
         {
             "name": "PlatformIO",
             "includePath": [
-                "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/include",
-                "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/src",
-                "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/lib/ZStepper",
-                "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/.pio/libdeps/uno/AccelStepper/src",
+                "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/include",
+                "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/src",
+                "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/lib/ZStepper",
+                "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/.pio/libdeps/uno/AccelStepper/src",
                 "/Users/johnmarangola/.platformio/packages/framework-arduino-avr/cores/arduino",
                 "/Users/johnmarangola/.platformio/packages/framework-arduino-avr/variants/standard",
                 "/Users/johnmarangola/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
@@ -25,10 +25,10 @@
             "browse": {
                 "limitSymbolsToIncludedHeaders": true,
                 "path": [
-                    "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/include",
-                    "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/src",
-                    "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/lib/ZStepper",
-                    "/Users/johnmarangola/Documents/PlatformIO/Projects/zstage/.pio/libdeps/uno/AccelStepper/src",
+                    "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/include",
+                    "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/src",
+                    "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/lib/ZStepper",
+                    "/Users/johnmarangola/Documents/PlatformIO/Projects/uhv-zstage/zstage/.pio/libdeps/uno/AccelStepper/src",
                     "/Users/johnmarangola/.platformio/packages/framework-arduino-avr/cores/arduino",
                     "/Users/johnmarangola/.platformio/packages/framework-arduino-avr/variants/standard",
                     "/Users/johnmarangola/.platformio/packages/framework-arduino-avr/libraries/EEPROM/src",
