@@ -32,7 +32,7 @@ bool errorState = false;
  */
 void home_axis() {
   // Run quickly to limit
-  zstage.stepper.setSpeed(5000);
+  zstage.stepper.setSpeed(7000);
   while (digitalRead(lowerLimitPin)) {
     zstage.stepper.runSpeed();
   }
@@ -101,54 +101,15 @@ void setup() {
   pinMode(okButton, INPUT_PULLUP);
   Serial.begin(9600);
   Serial.println("[Serial Communication Opened]");
-  if (checkNewEEPROM()) {
-    // Setup brand new device messages
-  }
-  else if (safelyPoweredOff()) {
-    initializeEEPROM();
-    home_axis();
-    Serial.println("[ZStage Homed]");
-  }
-  else {
-    errorState = true;
-    Serial.println("[Error: Power failure]");
-  }  
+  home_axis();
+  //zstage.runZStage(-8000, -300000);
+    Serial.println("enter");
+  zstage.rampZStage(-4000, -8500, -500, 500, -15000);
+
 }
 
 /**
  * @brief Main execution loop
  * 
  */
-void loop() {
-  if (digitalRead(lowerLimitPin)) {
-    zstage.stepper.stop();
-    zstage.stepper.setCurrentPosition(0);
-  }
-  else if (digitalRead(upperLimitPin)) {
-    zstage.stepper.stop();
-  }
-  else if (digitalRead(extendButton) && !digitalRead(upperLimitPin)) { // Check upper limit when extending zstage into chamber
-    zstage.stepper.setSpeed(5000);
-    zstage.stepper.run();
-  }
-  else if (digitalRead(retractButton) && !digitalRead(lowerLimitPin)) { // Check limit to make sure that motor does not manually blow through lower endstop
-    zstage.stepper.setSpeed(-5000);
-    zstage.stepper.run();
-  }
-  else if (errorState) {
-    delayMicroseconds(10000);
-    /* Check 'Ok' Button to wait for move here */
-    if (digitalRead(okButton)) {
-      home_axis();
-      errorState = false;
-    }
-  }
-  else {
-    for (int i = 0; i < 3; i++) {
-      if (digitalRead(positionButtons[i])) {
-        zstage.stepper.runToNewPosition(targetPositions[i]);
-        break;
-      }
-    }
-  }
-}
+void loop() {}
